@@ -13,7 +13,11 @@ public class NewBehaviourScript : MonoBehaviour
     private Text center;
     [SerializeField]
     private Text right;
+
     [SerializeField]
+    private Text hurigana;
+
+    /*[SerializeField]
     private Button leftStopButton;
     [SerializeField]
     private Button centerStopButton;
@@ -21,11 +25,21 @@ public class NewBehaviourScript : MonoBehaviour
     private Button rightStopButton;
     [SerializeField]
     private Button startButton;
-
+    */
     [SerializeField]
     private AudioSource one;
     [SerializeField]
     private AudioSource end;
+
+    [SerializeField]
+    private RectTransform content;
+    [SerializeField]
+    private GameObject scrollView;
+    [SerializeField]
+    private GameObject scrollBar;
+    [SerializeField]
+    private GameObject slot;
+
 
 
     bool leftStop = true;
@@ -37,6 +51,7 @@ public class NewBehaviourScript : MonoBehaviour
     private List<string> part = null;
     private List<string> section = null;
     private List<string> name = null;
+    private List<string> huriganaList = null;
 
     const int MAX_NUMBER = 200;
 
@@ -48,12 +63,13 @@ public class NewBehaviourScript : MonoBehaviour
     void Start()
     {
         r = new System.Random((int)DateTime.Now.Ticks);
-        csvReader();
 
         leftStop = true;
         centerStop = true;
         rightStop = true;
         birthDayMode = false;
+
+        csvReader();
         /*
         leftStopButton.onClick.AddListener(
             () =>
@@ -145,6 +161,14 @@ public class NewBehaviourScript : MonoBehaviour
             }
         }
 
+        if (Input.GetKeyDown(KeyCode.H))
+        {
+            scrollView.SetActive(!scrollView.activeSelf);
+            scrollBar.SetActive(scrollView.activeSelf);
+            slot.SetActive(!scrollView.activeSelf);
+              
+        }
+
 
     }
 
@@ -160,6 +184,7 @@ public class NewBehaviourScript : MonoBehaviour
         part = new List<string>();
         section = new List<string>();
         name = new List<string>();
+        huriganaList = new List<String>();
         int i = 0;
         // 末尾まで繰り返す
         while (!sr.EndOfStream)
@@ -171,19 +196,25 @@ public class NewBehaviourScript : MonoBehaviour
             part.Add(values[0]);
             section.Add(values[1]);
             name.Add(values[2]);
+            huriganaList.Add(values[3]);
             i++;
             // 配列からリストに格納する
             //csvList.Add(values);//line);
         }
         //return lists;
-        reset();
+        //reset();
 
     }
 
     public void seSelect()
     {
-        if(leftStop && centerStop && rightStop)
+        if (leftStop && centerStop && rightStop)
         {
+            if (!birthDayMode)
+            {
+                hurigana.text = huriganaList[selecter];
+                huriganaList.RemoveAt(selecter);
+            }
             end.Play();
             
             return;
@@ -195,7 +226,22 @@ public class NewBehaviourScript : MonoBehaviour
     {
         if (leftStop && centerStop && rightStop)
         {
-            selecter = r.Next(part.Count);
+            if (!birthDayMode)
+            {
+                hurigana.text = "";
+                selecter = r.Next(part.Count);
+                GameObject text = (GameObject)Resources.Load("history");
+                text.GetComponent<Text>().text = part[selecter] + " " + section[selecter] + " " + name[selecter] + " "+ huriganaList[selecter];
+                Instantiate(text, content.transform);
+            }
+            //text.GetComponent<RectTransform>().SetParent(content);
+
+            
+            //content.AddComponent<Text>();
+            //content.GetComponent<Text>().text = part[selecter];
+
+
+           
             leftStop = false;
             centerStop = false;
             rightStop = false;
@@ -204,28 +250,37 @@ public class NewBehaviourScript : MonoBehaviour
 
     public void leftClick()
     {
-        leftStop = true;
-        left.text = part[selecter];
-        part.RemoveAt(selecter);
-        seSelect();
+        if (!leftStop)
+        {
+            leftStop = true;
+            left.text = part[selecter];
+            part.RemoveAt(selecter);
+            seSelect();
+        }
 
     }
 
     public void centerClick()
     {
-        centerStop = true;
-        center.text = section[selecter];
-        section.RemoveAt(selecter);
-        seSelect();
+        if (!centerStop)
+        {
+            centerStop = true;
+            center.text = section[selecter];
+            section.RemoveAt(selecter);
+            seSelect();
+        }
 
     }
 
     public void rightClick()
     {
-        rightStop = true;
-        right.text = name[selecter];
-        name.RemoveAt(selecter);
-        seSelect();
+        if (!rightStop)
+        {
+            rightStop = true;
+            right.text = name[selecter];
+            name.RemoveAt(selecter);
+            seSelect();
+        }
 
     }
 }
